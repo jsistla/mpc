@@ -98,13 +98,46 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+         vector<double> next_x;
+         vector<double> next_y;
+
+                    // These two vectors hold vehicle coordinates
+                    vector<double> vehicle_x(ptsx.size());
+                    vector<double> vehicle_y(ptsy.size());
+
+                    for (int i = 0; i < ptsx.size(); i++) {
+                        double map_x = ptsx[i] - px;
+                        double map_y = ptsy[i] - py;
+                        double cos_psi = cos(psi);
+                        double sin_psi = sin(psi);
+
+                        vehicle_x[i] = map_x * cos_psi + map_y * sin_psi;
+                        vehicle_y[i] = -map_x * sin_psi + map_y * cos_psi;
+
+                        next_x.push_back(vehicle_x[i]);
+                        next_y.push_back(vehicle_y[i]);
+                    }
+
+                    auto coeffs = polyfit(
+                            Eigen::Map<Eigen::VectorXd>(&vehicle_x[0], vehicle_x.size()),
+                            Eigen::Map<Eigen::VectorXd>(&vehicle_y[0], vehicle_y.size()),
+                            3
+                    );
+
+                    double cte = polyeval(coeffs, 0);
+                    double epsi = atan(coeffs[1]);
+
+                    Eigen::VectorXd state_vector(6);
+                    state_vector << 0.0, 0.0, 0.0, v, cte, epsi;
+
+                    auto vars = mpc.Solve(state_vector, coeffs);
+                    double steer_value = vars[0];
+                    double throttle_value = vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
+          msgJson["steering_angle"] = -steer_value/deg2rad(25);
           msgJson["throttle"] = throttle_value;
 
           //Display the MPC predicted trajectory 
