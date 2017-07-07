@@ -5,8 +5,8 @@
 
 using CppAD::AD;
 
-size_t N = 20;
-double dt = 0.15;
+size_t N = 10;
+double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -22,7 +22,7 @@ const double Lf = 2.67;
 
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 60.0;
+double ref_v = 60.;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -132,7 +132,7 @@ vector<size_t> MPC::getStartInds() {
 
 vector<double> MPC::Solve(Eigen::VectorXd state_vector, Eigen::VectorXd coeffs) {
   bool ok = true;
-  // size_t i;
+  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
   // TODO: Set the number of model variables (includes both states and inputs).
